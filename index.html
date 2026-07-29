@@ -287,9 +287,17 @@
       <div id="unlockCountdown" style="font-size: 3.5rem; font-weight: bold; color: #38bdf8; margin: 1.5rem 0;">3</div>
     </div>
 
-    <!-- 步驟 3: 驗證輸入（播放傳統生日快樂歌） -->
+    <!-- 步驟 3: 驗證輸入與播放生日音樂 -->
     <div id="step3" class="step">
       <h1>祝壽星生日快樂 🎵</h1>
+      
+      <!-- 播放 MP3 按鈕區域 -->
+      <div style="margin: 15px 0;">
+        <button id="playMusicBtn" onclick="toggleAudio()" style="padding: 10px 22px; font-size: 16px; border-radius: 20px; background-color: #ff4d4f; color: white; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 77, 79, 0.4); font-weight: bold; transition: all 0.3s;">
+          🎵 播放生日歌
+        </button>
+      </div>
+
       <p style="font-size: 0.9rem; color: #cbd5e1; margin-top: 0.5rem;">請輸入：「好的」並點選確認提交</p>
       <input type="text" id="verifyInput" placeholder="好的">
       <br>
@@ -355,6 +363,9 @@
       <button class="btn" onclick="closeModal()">收下好運並繼續 ✨</button>
     </div>
   </div>
+
+  <!-- 隱藏的 MP3 音訊標籤 -->
+  <audio id="bgm" src="海底撈生日快樂歌.mp3" preload="auto"></audio>
 
   <script>
     /* ----- 1. 藍色流星雨與閃爍星光背景 ----- */
@@ -449,88 +460,27 @@
     setInterval(updateBirthdayTimer, 1000);
     updateBirthdayTimer();
 
-    /* ----- 3. 音效音樂系統 (Web Audio API) ----- */
-    let audioCtx = null;
+    /* ----- 3. 音樂控制系統 (播放 GitHub 上的海底撈 MP3) ----- */
+    function toggleAudio() {
+      const audio = document.getElementById('bgm');
+      const btn = document.getElementById('playMusicBtn');
 
-    function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      return audioCtx;
-    }
-
-    // A. 經典生日快樂歌旋律
-    function playBirthdaySong() {
-      const ctx = getAudioContext();
-      const notes = [
-        { f: 264, d: 0.4 }, { f: 264, d: 0.4 }, { f: 297, d: 0.8 }, { f: 264, d: 0.8 }, { f: 352, d: 0.8 }, { f: 330, d: 1.2 },
-        { f: 264, d: 0.4 }, { f: 264, d: 0.4 }, { f: 297, d: 0.8 }, { f: 264, d: 0.8 }, { f: 396, d: 0.8 }, { f: 352, d: 1.2 }
-      ];
-
-      let currentTime = ctx.currentTime + 0.1;
-
-      notes.forEach(note => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(note.f, currentTime);
-        
-        gain.gain.setValueAtTime(0.12, currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, currentTime + note.d - 0.05);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(currentTime);
-        osc.stop(currentTime + note.d);
-
-        currentTime += note.d;
-      });
-    }
-
-    // B. 海底撈生日歌節奏音樂 (對所有的煩惱說 Bye~ Bye, 對所有的快樂說 Hi~ Hi)
-    function playHaidilaoSong() {
-      const ctx = getAudioContext();
-      // 海底撈經典洗腦旋律節奏 (快節奏歡樂)
-      const notes = [
-        { f: 523, d: 0.2 }, { f: 587, d: 0.2 }, { f: 659, d: 0.3 }, { f: 523, d: 0.2 }, { f: 659, d: 0.4 }, // 對所有的煩惱
-        { f: 784, d: 0.3 }, { f: 659, d: 0.5 }, // 說 Bye Bye
-        { f: 523, d: 0.2 }, { f: 587, d: 0.2 }, { f: 659, d: 0.3 }, { f: 523, d: 0.2 }, { f: 659, d: 0.4 }, // 對所有的快樂
-        { f: 880, d: 0.3 }, { f: 784, d: 0.6 }  // 說 Hi Hi
-      ];
-
-      let currentTime = ctx.currentTime + 0.1;
-
-      notes.forEach(note => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(note.f, currentTime);
-        
-        gain.gain.setValueAtTime(0.15, currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, currentTime + note.d - 0.03);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(currentTime);
-        osc.stop(currentTime + note.d);
-
-        currentTime += note.d;
-      });
-
-      // 同時搭配語音唸出歌詞（雙重保障）
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // 停止先前的朗讀
-        const text = "對所有的煩惱說 Bye Bye！對所有的快樂說 Hi Hi！";
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-TW';
-        utterance.rate = 1.1;
-        window.speechSynthesis.speak(utterance);
+      if (audio.paused) {
+        audio.play().then(() => {
+          btn.innerHTML = '⏸️ 暫停音樂';
+          btn.style.backgroundColor = '#52c41a';
+        }).catch(err => {
+          console.error("播放失敗:", err);
+          alert("音樂載入失敗，請確認『海底撈生日快樂歌.mp3』已正確上傳至 GitHub 根目錄！");
+        });
+      } else {
+        audio.pause();
+        btn.innerHTML = '🎵 播放生日歌';
+        btn.style.backgroundColor = '#ff4d4f';
       }
     }
 
-    /* ----- 4. 流程與控制邏輯 ----- */
+    /* ----- 4. 流程與頁面控制邏輯 ----- */
     function goToStep(stepNumber) {
       document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
       document.getElementById(`step${stepNumber}`).classList.add('active');
@@ -548,7 +498,8 @@
         } else {
           clearInterval(interval);
           goToStep(3);
-          playBirthdaySong(); // 進入步驟 3 播放生日快樂歌
+          // 自動試圖播放音樂（若瀏覽器阻擋則可透過「播放生日歌」按鈕手動播放）
+          toggleAudio();
         }
       }, 1000);
     }
@@ -567,7 +518,6 @@
     function selectMood(isHappy) {
       if (!isHappy) {
         document.getElementById('sadModal').style.display = 'flex';
-        playHaidilaoSong(); // 觸發海底撈經典歌詞音樂與語音！
       } else {
         showFinalPage();
       }
@@ -575,9 +525,6 @@
 
     function closeModal() {
       document.getElementById('sadModal').style.display = 'none';
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
       showFinalPage();
     }
 
