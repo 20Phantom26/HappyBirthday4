@@ -287,11 +287,11 @@
       <div id="unlockCountdown" style="font-size: 3.5rem; font-weight: bold; color: #38bdf8; margin: 1.5rem 0;">3</div>
     </div>
 
-    <!-- 步驟 3: 驗證輸入與播放生日音樂 -->
+    <!-- 步驟 3: 驗證輸入與播放海底撈 MP3 -->
     <div id="step3" class="step">
       <h1>祝壽星生日快樂 🎵</h1>
       
-      <!-- 播放 MP3 按鈕區域 -->
+      <!-- MP3 播放控制按鈕 -->
       <div style="margin: 15px 0;">
         <button id="playMusicBtn" onclick="toggleAudio()" style="padding: 10px 22px; font-size: 16px; border-radius: 20px; background-color: #ff4d4f; color: white; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 77, 79, 0.4); font-weight: bold; transition: all 0.3s;">
           🎵 播放生日歌
@@ -351,7 +351,7 @@
 
   </div>
 
-  <!-- 不開心彈窗 (海底撈歌詞與主題) -->
+  <!-- 不開心彈窗 (海底撈歌詞主題) -->
   <div class="modal" id="sadModal">
     <div class="modal-content">
       <h2 style="margin-bottom: 1rem; color: #38bdf8;">壽星笑開懷好運天天來🌈</h2>
@@ -364,7 +364,7 @@
     </div>
   </div>
 
-  <!-- 隱藏的 MP3 音訊標籤 -->
+  <!-- 引用上傳的海底撈 MP3 音檔 -->
   <audio id="bgm" src="海底撈生日快樂歌.mp3" preload="auto"></audio>
 
   <script>
@@ -460,7 +460,20 @@
     setInterval(updateBirthdayTimer, 1000);
     updateBirthdayTimer();
 
-    /* ----- 3. 音樂控制系統 (播放 GitHub 上的海底撈 MP3) ----- */
+    /* ----- 3. 音樂播放/暫停 控制邏輯 (播放海底撈 MP3) ----- */
+    function playAudio() {
+      const audio = document.getElementById('bgm');
+      const btn = document.getElementById('playMusicBtn');
+      audio.play().then(() => {
+        if(btn) {
+          btn.innerHTML = '⏸️ 暫停音樂';
+          btn.style.backgroundColor = '#52c41a';
+        }
+      }).catch(err => {
+        console.error("自動播放受阻，等待使用者點擊:", err);
+      });
+    }
+
     function toggleAudio() {
       const audio = document.getElementById('bgm');
       const btn = document.getElementById('playMusicBtn');
@@ -471,7 +484,7 @@
           btn.style.backgroundColor = '#52c41a';
         }).catch(err => {
           console.error("播放失敗:", err);
-          alert("音樂載入失敗，請確認『海底撈生日快樂歌.mp3』已正確上傳至 GitHub 根目錄！");
+          alert("音樂載入失敗，請確認『海底撈生日快樂歌.mp3』已正確上傳至 GitHub！");
         });
       } else {
         audio.pause();
@@ -480,7 +493,7 @@
       }
     }
 
-    /* ----- 4. 流程與頁面控制邏輯 ----- */
+    /* ----- 4. 流程與關卡控制 ----- */
     function goToStep(stepNumber) {
       document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
       document.getElementById(`step${stepNumber}`).classList.add('active');
@@ -498,8 +511,7 @@
         } else {
           clearInterval(interval);
           goToStep(3);
-          // 自動試圖播放音樂（若瀏覽器阻擋則可透過「播放生日歌」按鈕手動播放）
-          toggleAudio();
+          playAudio(); // 嘗試觸發 MP3 播放
         }
       }, 1000);
     }
@@ -518,6 +530,7 @@
     function selectMood(isHappy) {
       if (!isHappy) {
         document.getElementById('sadModal').style.display = 'flex';
+        playAudio(); // 不開心時，確認 MP3 正在播放洗腦歌詞！
       } else {
         showFinalPage();
       }
